@@ -1,0 +1,2203 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>بیت‌چین | بازی حافظه و جورچین شعر فارسی</title>
+
+  <!-- تنظیمات PWA و بهینه‌سازی برای افزودن به صفحه اصلی موبایل -->
+  <meta name="theme-color" content="#1f5c5b" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="بیت‌چین" />
+  <meta name="description" content="اپلیکیشن بازی‌محور حفظ شعر فارسی از طریق جورچین مصراع‌ها با ذخیره خودکار و پیگیری تمرین ماهانه" />
+
+  <!-- آیکون SVG خطی برای تب مرورگر و صفحه اصلی -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%231f5c5b'/%3E%3Cg fill='none' stroke='%23fffdf8' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='20' cy='20' r='5'/%3E%3Ccircle cx='20' cy='44' r='5'/%3E%3Cline x1='46' y1='16' x2='24' y2='40'/%3E%3Cline x1='35' y1='35' x2='46' y2='46'/%3E%3Cline x1='24' y1='24' x2='31' y2='31'/%3E%3C/g%3E%3C/svg%3E" />
+
+  <!-- فونت فارسی Vazirmatn از گوگل فونت -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            parchment: '#f6f2ea',
+            parchmentDark: '#e4dccb',
+            paper: '#fffdf8',
+            ink: '#1e242b',
+            inkMuted: '#5b6168',
+            tealAntique: '#1f5c5b',
+            tealLight: '#e5f1ef',
+            terracotta: '#c06c47',
+            terracottaLight: '#f9ede7',
+            goldSoft: '#c89d54',
+            emeraldSoft: '#2e7d5b',
+          },
+          fontFamily: {
+            sans: ['Vazirmatn', 'Tahoma', 'system-ui', 'sans-serif'],
+          },
+          boxShadow: {
+            card: '0 3px 10px -2px rgba(30, 36, 43, 0.08), 0 1px 3px rgba(30, 36, 43, 0.05)',
+            cardHover: '0 10px 22px -5px rgba(31, 92, 91, 0.16), 0 4px 8px -2px rgba(30, 36, 43, 0.08)',
+            hud: '0 8px 20px -6px rgba(30, 36, 43, 0.12)',
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    /* پایه‌های موبایل‌فرست و پس‌زمینه کاغذی گرم */
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      background-color: #f6f2ea;
+      background-image:
+        radial-gradient(rgba(31, 92, 91, 0.045) 1px, transparent 1px),
+        radial-gradient(rgba(192, 108, 71, 0.04) 1px, transparent 1px);
+      background-size: 28px 28px;
+      background-position: 0 0, 14px 14px;
+      color: #1e242b;
+      font-family: 'Vazirmatn', Tahoma, system-ui, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    /* جلوگیری از زوم ناخواسته هنگام تایپ در مرورگرهای موبایل (iOS) */
+    input, textarea, select {
+      font-size: 16px !important;
+    }
+
+    /* استایل کارت‌های کاغذی مصراع با خط برش قیچی */
+    .hemistich-card {
+      background-color: #fffdf8;
+      background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.8) 0%, rgba(246, 242, 234, 0.4) 100%);
+      border: 1.5px solid #dfd7c8;
+      position: relative;
+      transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1),
+                  box-shadow 0.2s ease,
+                  border-color 0.2s ease,
+                  opacity 0.25s ease,
+                  background-color 0.2s ease;
+      user-select: none;
+      touch-action: manipulation;
+    }
+
+    /* خط‌چین ظریف لبه کارت به نشانه برش کاغذی */
+    .hemistich-card::after {
+      content: '';
+      position: absolute;
+      top: 10px;
+      bottom: 10px;
+      right: 7px;
+      width: 2px;
+      border-right: 1.5px dashed rgba(192, 108, 71, 0.32);
+      pointer-events: none;
+    }
+
+    @media (hover: hover) {
+      .hemistich-card:hover {
+        transform: translateY(-2px);
+        border-color: #1f5c5b;
+        box-shadow: 0 10px 22px -5px rgba(31, 92, 91, 0.15), 0 4px 8px -2px rgba(30, 36, 43, 0.06);
+      }
+    }
+
+    .hemistich-card:active {
+      transform: scale(0.985);
+    }
+
+    .hemistich-card.selected {
+      background-color: #ebf5f4;
+      border-color: #1f5c5b;
+      box-shadow: 0 0 0 2.5px #1f5c5b, 0 10px 20px -6px rgba(31, 92, 91, 0.25);
+      transform: translateY(-2px) scale(1.01);
+      z-index: 10;
+    }
+
+    /* انیمیشن تطابق موفق (سبز نرم) */
+    @keyframes matchCelebrate {
+      0% { transform: scale(1); background-color: #e6f6ed; border-color: #2e7d5b; }
+      45% { transform: scale(1.03); background-color: #d4f0e1; border-color: #2e7d5b; box-shadow: 0 0 0 4px rgba(46, 125, 91, 0.28); }
+      100% { transform: scale(0.92); opacity: 0; }
+    }
+
+    .hemistich-card.matched-anim {
+      animation: matchCelebrate 0.45s ease forwards;
+      pointer-events: none;
+    }
+
+    /* انیمیشن لرزش برای عدم تطابق (قرمز ملایم) */
+    @keyframes mismatchShake {
+      0%, 100% { transform: translateX(0); }
+      20% { transform: translateX(-6px); }
+      40% { transform: translateX(6px); }
+      60% { transform: translateX(-4px); }
+      80% { transform: translateX(4px); }
+    }
+
+    .hemistich-card.mismatch-anim {
+      animation: mismatchShake 0.42s ease;
+      background-color: #fdf0ed;
+      border-color: #c94a38;
+      box-shadow: 0 0 0 2px rgba(201, 74, 56, 0.32);
+    }
+
+    /* انیمیشن راهنمایی (پالس طلایی) */
+    @keyframes hintPulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(200, 157, 84, 0.75); border-color: #c89d54; }
+      50% { box-shadow: 0 0 0 8px rgba(200, 157, 84, 0); border-color: #c06c47; background-color: #fdf7eb; }
+    }
+
+    .hemistich-card.hint-glow {
+      animation: hintPulse 1.05s ease-in-out 2;
+    }
+
+    /* انیمیشن ورود بیت تکمیل‌شده */
+    @keyframes coupletEnter {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .couplet-enter {
+      animation: coupletEnter 0.35s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+
+    /* انیمیشن مودال */
+    @keyframes modalFadeIn {
+      from { opacity: 0; transform: scale(0.96) translateY(10px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    .modal-panel {
+      animation: modalFadeIn 0.24s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    /* اسکرول‌بار ظریف */
+    ::-webkit-scrollbar { width: 7px; height: 7px; }
+    ::-webkit-scrollbar-track { background: #f0e9dc; }
+    ::-webkit-scrollbar-thumb { background: #c7bba6; border-radius: 9999px; }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col selection:bg-tealAntique/20 selection:text-tealAntique">
+
+  <!-- ==================== هدر اصلی چسبان ==================== -->
+  <header class="sticky top-0 z-30 bg-parchment/95 backdrop-blur-md border-b border-parchmentDark" style="padding-top: env(safe-area-inset-top, 0px);">
+    <div class="max-w-5xl mx-auto px-3.5 sm:px-6 h-16 flex items-center justify-between gap-2">
+      <!-- لوگو و عنوان -->
+      <button id="brandHomeBtn" type="button" class="flex items-center gap-2.5 text-right group focus:outline-none min-h-[48px] py-1" title="صفحه اصلی">
+        <div class="w-10 h-10 rounded-xl bg-tealAntique text-paper flex items-center justify-center shadow-sm group-hover:bg-tealAntique/90 transition shrink-0">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="6" cy="6" r="3"></circle>
+            <circle cx="6" cy="18" r="3"></circle>
+            <line x1="20" y1="4" x2="8.12" y2="15.88"></line>
+            <line x1="14.47" y1="14.48" x2="20" y2="20"></line>
+            <line x1="8.12" y1="8.12" x2="12" y2="12"></line>
+          </svg>
+        </div>
+        <div>
+          <h1 class="text-lg sm:text-xl font-extrabold text-ink tracking-tight leading-none">بیت‌چین</h1>
+          <p class="text-[11px] text-inkMuted mt-1">بازی و تمرین حفظ شعر فارسی</p>
+        </div>
+      </button>
+
+      <!-- دکمه‌های هدر با ابعاد لمسی مناسب -->
+      <div class="flex items-center gap-2">
+        <button id="soundToggleBtn" type="button"
+          class="w-12 h-12 rounded-xl border border-parchmentDark bg-paper text-inkMuted hover:text-tealAntique hover:border-tealAntique/50 transition flex items-center justify-center"
+          title="قطع و وصل صدا" aria-label="قطع و وصل صدا">
+          <svg id="soundOnIcon" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+            <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+            <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+          </svg>
+          <svg id="soundOffIcon" class="w-5 h-5 hidden text-terracotta" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+            <line x1="23" y1="9" x2="17" y2="15"></line>
+            <line x1="17" y1="9" x2="23" y2="15"></line>
+          </svg>
+        </button>
+
+        <button id="openGuideBtn" type="button"
+          class="min-h-[48px] px-3.5 rounded-xl border border-parchmentDark bg-paper text-sm font-semibold text-ink hover:border-tealAntique/50 hover:text-tealAntique transition flex items-center gap-1.5">
+          <svg class="w-4 h-4 text-terracotta shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+          </svg>
+          <span>راهنما</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==================== محتوای اصلی ==================== -->
+  <main class="flex-1 max-w-5xl w-full mx-auto px-3.5 sm:px-6 py-5 sm:py-7">
+
+    <!-- ==================== نمای ۱: صفحه اصلی (کتابخانه و چالش ماهانه) ==================== -->
+    <section id="libraryView" class="space-y-5">
+
+      <!-- بنر ادامه بازی نیمه‌تمام (فقط در صورت وجود جلسه ذخیره شده نمایش داده می‌شود) -->
+      <div id="resumeSessionBanner" class="hidden bg-gradient-to-l from-tealAntique to-[#184847] text-paper rounded-2xl p-4 sm:p-5 shadow-card border border-tealAntique/30">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div class="space-y-1">
+            <div class="inline-flex items-center gap-1.5 text-xs font-semibold bg-paper/15 px-2.5 py-1 rounded-lg">
+              <span class="w-2 h-2 rounded-full bg-goldSoft animate-pulse"></span>
+              <span>بازی نیمه‌تمام ذخیره‌شده</span>
+            </div>
+            <h2 id="resumeDeckTitle" class="text-lg font-bold leading-snug pt-0.5">عنوان شعر</h2>
+            <p id="resumeDeckMeta" class="text-xs sm:text-sm text-paper/85"></p>
+          </div>
+          <div class="flex items-center gap-2.5 shrink-0">
+            <button id="resumeGameBtn" type="button"
+              class="flex-1 sm:flex-none min-h-[48px] px-5 rounded-xl bg-paper text-tealAntique text-sm font-bold hover:bg-parchment transition shadow-sm flex items-center justify-center gap-2">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                <polygon points="5 3 19 12 5 21 5 3"></polygon>
+              </svg>
+              <span>ادامه از همین‌جا</span>
+            </button>
+            <button id="discardSessionBtn" type="button"
+              class="min-h-[48px] px-3.5 rounded-xl bg-paper/15 text-paper text-xs sm:text-sm font-medium hover:bg-paper/25 transition"
+              title="حذف بازی نیمه‌تمام">
+              بستن
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- نوار انگیزشی تمرین ماهانه (چالش حفظ شعر) -->
+      <div class="bg-paper rounded-2xl border border-parchmentDark p-4 sm:p-5 shadow-card space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <h2 class="text-base sm:text-lg font-extrabold text-ink flex items-center gap-2">
+              <svg class="w-5 h-5 text-terracotta" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="16" y1="2" x2="16" y2="6"></line>
+                <line x1="8" y1="2" x2="8" y2="6"></line>
+                <line x1="3" y1="10" x2="21" y2="10"></line>
+              </svg>
+              <span>چالش حفظ شعر ماهانه</span>
+            </h2>
+            <p class="text-xs text-inkMuted mt-0.5">با تمرین مداوم در طول ماه، ابیات محبوبتان ملکه ذهنتان می‌شوند.</p>
+          </div>
+          <span id="currentPersianMonthBadge" class="self-start sm:self-auto text-xs font-bold px-3 py-1.5 rounded-xl bg-tealLight text-tealAntique"></span>
+        </div>
+
+        <div class="grid grid-cols-3 gap-2.5 sm:gap-4 text-center">
+          <div class="bg-parchment/70 rounded-xl p-3 border border-parchmentDark/80">
+            <div class="text-[11px] sm:text-xs text-inkMuted">روزهای فعال این ماه</div>
+            <div id="summaryMonthDays" class="text-lg sm:text-xl font-extrabold text-tealAntique mt-0.5">۰ روز</div>
+          </div>
+          <div class="bg-parchment/70 rounded-xl p-3 border border-parchmentDark/80">
+            <div class="text-[11px] sm:text-xs text-inkMuted">زنجیره روزانه</div>
+            <div id="summaryStreak" class="text-lg sm:text-xl font-extrabold text-terracotta mt-0.5">۰ روز</div>
+          </div>
+          <div class="bg-parchment/70 rounded-xl p-3 border border-parchmentDark/80">
+            <div class="text-[11px] sm:text-xs text-inkMuted">کل تمرین‌ها</div>
+            <div id="summaryTotalSessions" class="text-lg sm:text-xl font-extrabold text-ink mt-0.5">۰ بار</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- نوار عنوان کتابخانه و دکمه‌های افزودن / پشتیبان‌گیری -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
+        <div>
+          <h2 class="text-lg sm:text-xl font-extrabold text-ink">دست‌کارت‌های شعر</h2>
+          <p class="text-xs text-inkMuted mt-0.5">تمام شعرها و آمار شما به‌صورت خودکار در همین مرورگر ذخیره می‌شوند.</p>
+        </div>
+        <div class="grid grid-cols-2 sm:flex items-center gap-2.5">
+          <button id="createDeckBtn" type="button"
+            class="min-h-[48px] px-4 rounded-xl bg-tealAntique text-paper text-sm font-bold hover:bg-tealAntique/90 transition shadow-sm flex items-center justify-center gap-2">
+            <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            <span>افزودن شعر</span>
+          </button>
+
+          <button id="openBackupModalBtn" type="button"
+            class="min-h-[48px] px-3.5 rounded-xl bg-paper text-ink text-sm font-semibold border border-parchmentDark hover:border-tealAntique/50 hover:text-tealAntique transition flex items-center justify-center gap-1.5">
+            <svg class="w-4 h-4 text-terracotta shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="17 8 12 3 7 8"></polyline>
+              <line x1="12" y1="3" x2="12" y2="15"></line>
+            </svg>
+            <span>پشتیبان‌گیری</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- شبکه دست‌کارت‌های شعر -->
+      <div id="decksGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <!-- با جاوااسکریپت ساخته می‌شود -->
+      </div>
+    </section>
+
+    <!-- ==================== نمای ۲: ویرایشگر هوشمند افزودن/ویرایش شعر ==================== -->
+    <section id="editorView" class="hidden max-w-3xl mx-auto space-y-4">
+      <div class="flex items-center justify-between gap-3">
+        <button id="editorBackBtn" type="button"
+          class="min-h-[48px] px-3.5 rounded-xl bg-paper border border-parchmentDark text-sm font-semibold text-inkMuted hover:text-tealAntique hover:border-tealAntique/40 transition flex items-center gap-1.5">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
+          <span>بازگشت</span>
+        </button>
+        <h2 id="editorHeading" class="text-lg sm:text-xl font-extrabold text-ink">افزودن شعر جدید</h2>
+      </div>
+
+      <div class="bg-paper rounded-2xl border border-parchmentDark p-4 sm:p-6 shadow-card space-y-5">
+        <!-- عنوان و نام شاعر -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label for="deckTitleInput" class="block text-sm font-bold text-ink mb-1.5">عنوان شعر یا دست‌کارت <span class="text-terracotta">*</span></label>
+            <input id="deckTitleInput" type="text" placeholder="مثلاً: غزل شماره ۱ حافظ"
+              class="w-full min-h-[48px] px-3.5 py-2.5 rounded-xl bg-parchment/50 border border-parchmentDark text-ink placeholder:text-inkMuted/60 focus:outline-none focus:border-tealAntique focus:bg-paper transition" />
+          </div>
+          <div>
+            <label for="deckAuthorInput" class="block text-sm font-bold text-ink mb-1.5">نام شاعر <span class="text-xs font-normal text-inkMuted">(اختیاری)</span></label>
+            <input id="deckAuthorInput" type="text" placeholder="مثلاً: حافظ، سعدی، سهراب سپهری..."
+              class="w-full min-h-[48px] px-3.5 py-2.5 rounded-xl bg-parchment/50 border border-parchmentDark text-ink placeholder:text-inkMuted/60 focus:outline-none focus:border-tealAntique focus:bg-paper transition" />
+          </div>
+        </div>
+
+        <!-- انتخاب حالت ورودی -->
+        <div class="space-y-2">
+          <label class="block text-sm font-bold text-ink">نحوه تفکیک مصراع‌ها</label>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 p-1.5 bg-parchment rounded-xl border border-parchmentDark">
+            <button id="modeLineByLineBtn" type="button"
+              class="min-h-[54px] px-3.5 py-2.5 rounded-lg text-sm transition text-right flex flex-col justify-center gap-0.5">
+              <span class="font-bold">حالت ۱: هر مصراع در یک خط</span>
+              <span class="text-xs opacity-80">مناسب کپی مستقیم از سایت گنجور</span>
+            </button>
+            <button id="modeSingleLineBtn" type="button"
+              class="min-h-[54px] px-3.5 py-2.5 rounded-lg text-sm transition text-right flex flex-col justify-center gap-0.5">
+              <span class="font-bold">حالت ۲: هر بیت در یک خط</span>
+              <span class="text-xs opacity-80">جداشده با Tab، /، *، — یا چند فاصله</span>
+            </button>
+          </div>
+
+          <!-- پیشنهاد هوشمند تغییر حالت -->
+          <div id="autoDetectBanner" class="hidden flex items-center justify-between gap-2 bg-tealLight border border-tealAntique/25 text-tealAntique rounded-xl px-3.5 py-2.5 text-xs">
+            <span id="autoDetectText"></span>
+            <button id="applySuggestedModeBtn" type="button" class="shrink-0 font-bold underline px-2 py-1">
+              تغییر حالت
+            </button>
+          </div>
+        </div>
+
+        <!-- متن شعر -->
+        <div>
+          <div class="flex items-center justify-between mb-1.5">
+            <label for="poemTextarea" class="text-sm font-bold text-ink">متن شعر</label>
+            <button id="fillSamplePoemBtn" type="button" class="text-xs text-terracotta font-semibold hover:underline py-1 px-2">
+              درج نمونه شعر
+            </button>
+          </div>
+          <textarea id="poemTextarea" rows="8"
+            placeholder="شعر خود را اینجا بنویسید یا از گنجور کپی کنید...&#10;&#10;بنی‌آدم اعضای یک پیکرند&#10;که در آفرینش ز یک گوهرند"
+            class="w-full px-4 py-3 rounded-xl bg-parchment/40 border border-parchmentDark text-ink leading-8 placeholder:text-inkMuted/50 focus:outline-none focus:border-tealAntique focus:bg-paper transition resize-y"></textarea>
+        </div>
+
+        <!-- پیش‌نمایش زنده ابیات -->
+        <div class="rounded-xl bg-parchment/75 border border-parchmentDark p-4 space-y-3">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div class="flex items-center gap-2">
+              <span id="previewStatusDot" class="w-2.5 h-2.5 rounded-full bg-terracotta"></span>
+              <span id="previewCountText" class="text-sm font-bold text-ink">۰ بیت معتبر شناسایی شد</span>
+            </div>
+            <span id="previewWarningText" class="text-xs font-medium text-terracotta hidden"></span>
+          </div>
+          <div id="previewCoupletsList" class="space-y-2 hidden"></div>
+        </div>
+
+        <!-- دکمه‌های ذخیره -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-parchmentDark">
+          <button id="saveDeckOnlyBtn" type="button"
+            class="min-h-[48px] px-4 rounded-xl bg-parchment border border-parchmentDark text-ink text-sm font-bold hover:border-tealAntique/50 hover:text-tealAntique transition">
+            ذخیره در فهرست شعرها
+          </button>
+          <button id="saveAndPlayBtn" type="button"
+            class="min-h-[48px] px-5 rounded-xl bg-tealAntique text-paper text-sm font-bold hover:bg-tealAntique/90 transition shadow-sm flex items-center justify-center gap-2">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+              <polygon points="5 3 19 12 5 21 5 3"></polygon>
+            </svg>
+            <span>ذخیره و شروع بازی</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== نمای ۳: صفحه بازی جورچین (با نوار وضعیت چسبان) ==================== -->
+    <section id="gameView" class="hidden space-y-5">
+
+      <!-- نوار وضعیت چسبان (Sticky HUD) برای دسترسی سریع در موبایل -->
+      <div class="sticky top-16 z-20 -mx-3.5 sm:mx-0 px-3.5 sm:px-5 py-3 bg-paper/95 backdrop-blur-md border-b sm:border border-parchmentDark sm:rounded-2xl shadow-hud space-y-2.5">
+        <!-- ردیف بالا: بازگشت، عنوان شعر و دکمه‌های عملیات -->
+        <div class="flex items-center justify-between gap-2">
+          <div class="flex items-center gap-2.5 min-w-0">
+            <button id="gameBackBtn" type="button"
+              class="w-11 h-11 rounded-xl bg-parchment border border-parchmentDark text-inkMuted hover:text-tealAntique transition flex items-center justify-center shrink-0"
+              title="بازگشت (بازی خودکار ذخیره می‌شود)">
+              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="9 18 15 12 9 6"></polyline>
+              </svg>
+            </button>
+            <div class="min-w-0">
+              <h2 id="gameDeckTitle" class="text-sm sm:text-base font-extrabold text-ink truncate">عنوان شعر</h2>
+              <div class="flex items-center gap-2 text-[11px] text-inkMuted">
+                <span id="statMatched" class="font-bold text-tealAntique">۰ از ۰ بیت</span>
+                <span>•</span>
+                <span>دقت: <strong id="statAccuracy" class="text-terracotta">۱۰۰٪</strong></span>
+                <span>•</span>
+                <span id="statTimer" class="font-bold text-ink tabular-nums">۰۰:۰۰</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- دکمه‌های لمسی راهنمایی و بُر زدن -->
+          <div class="flex items-center gap-1.5 shrink-0">
+            <button id="hintBtn" type="button"
+              class="min-h-[44px] px-3 rounded-xl bg-terracottaLight text-terracotta border border-terracotta/25 text-xs font-bold hover:bg-terracotta hover:text-paper transition flex items-center gap-1"
+              title="راهنمایی">
+              <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 18h6"></path>
+                <path d="M10 22h4"></path>
+                <path d="M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z"></path>
+              </svg>
+              <span class="hidden sm:inline">راهنمایی</span>
+            </button>
+
+            <button id="reshuffleBtn" type="button"
+              class="min-h-[44px] px-3 rounded-xl bg-parchment text-ink border border-parchmentDark text-xs font-bold hover:border-tealAntique/50 hover:text-tealAntique transition flex items-center gap-1"
+              title="بُر زدن کارت‌های باقی‌مانده">
+              <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="16 3 21 3 21 8"></polyline>
+                <line x1="4" y1="20" x2="21" y2="3"></line>
+                <polyline points="21 16 21 21 16 21"></polyline>
+                <line x1="15" y1="15" x2="21" y2="21"></line>
+                <line x1="4" y1="4" x2="9" y2="9"></line>
+              </svg>
+              <span class="hidden sm:inline">بُر زدن</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- نوار پیشرفت باریک -->
+        <div class="w-full h-1.5 bg-parchmentDark/80 rounded-full overflow-hidden">
+          <div id="gameProgressBar" class="h-full bg-tealAntique rounded-full transition-all duration-300" style="width: 0%"></div>
+        </div>
+      </div>
+
+      <!-- نوار تنظیمات تکمیلی بازی (برچسب مصراع و فیلتر در موبایل) -->
+      <div class="flex flex-wrap items-center justify-between gap-3 px-1">
+        <label class="inline-flex items-center gap-2.5 cursor-pointer select-none min-h-[40px] text-xs sm:text-sm text-inkMuted hover:text-ink transition">
+          <input id="showLabelsToggle" type="checkbox" class="sr-only peer" />
+          <div class="w-10 h-6 bg-parchmentDark rounded-full peer peer-checked:bg-tealAntique relative transition-colors after:content-[''] after:absolute after:top-1 after:right-1 after:bg-paper after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:-translate-x-4"></div>
+          <span class="font-medium">نمایش برچسب مصراع ۱ و ۲</span>
+        </label>
+
+        <!-- فیلتر سریع کارت‌ها (فقط زمانی فعال می‌شود که برچسب‌ها روشن باشند) -->
+        <div id="hemistichFilterBar" class="hidden items-center gap-1 bg-parchmentDark/50 p-1 rounded-xl text-xs font-semibold">
+          <button type="button" data-filter="all" class="filter-pill px-2.5 py-1.5 rounded-lg transition">همه</button>
+          <button type="button" data-filter="1" class="filter-pill px-2.5 py-1.5 rounded-lg transition">مصراع ۱</button>
+          <button type="button" data-filter="2" class="filter-pill px-2.5 py-1.5 rounded-lg transition">مصراع ۲</button>
+        </div>
+      </div>
+
+      <!-- میز کارت‌های مصراع -->
+      <div class="space-y-2.5">
+        <div class="flex items-center justify-between px-1 text-xs text-inkMuted">
+          <span>دو مصراعِ هم‌جفت را لمس کنید تا بیت کامل شود</span>
+          <span id="remainingCardsBadge" class="font-semibold"></span>
+        </div>
+
+        <div id="cardsBoard" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-3.5">
+          <!-- کارت‌های مصراع اینجا رندر می‌شوند -->
+        </div>
+      </div>
+
+      <!-- بخش ابیات تکمیل‌شده -->
+      <div class="bg-paper rounded-2xl border border-parchmentDark p-4 sm:p-6 shadow-card space-y-3.5">
+        <div class="flex items-center justify-between border-b border-parchmentDark pb-3">
+          <h3 class="text-sm sm:text-base font-extrabold text-tealAntique flex items-center gap-2">
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+              <polyline points="22 4 12 14.01 9 11.01"></polyline>
+            </svg>
+            <span>ابیات تکمیل‌شده</span>
+          </h3>
+          <span id="completedCountLabel" class="text-xs font-semibold text-inkMuted">۰ بیت</span>
+        </div>
+
+        <div id="completedList" class="space-y-2.5"></div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- فوتر -->
+  <footer class="mt-auto border-t border-parchmentDark/80 py-4 text-center text-xs text-inkMuted px-4">
+    <div class="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-1.5">
+      <span>بیت‌چین — تمرین لذت‌بخش و روزانه حفظ شعر فارسی</span>
+      <span>ذخیره‌سازی خودکار روی مرورگر شما (قابل نصب روی صفحه اصلی گوشی)</span>
+    </div>
+  </footer>
+
+  <!-- ==================== مودال ۱: راهنمای شروع ==================== -->
+  <div id="guideModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-ink/55 backdrop-blur-xs p-4 overflow-y-auto">
+    <div class="modal-panel bg-paper rounded-2xl border border-parchmentDark max-w-lg w-full p-5 sm:p-6 shadow-2xl space-y-5 my-auto">
+      <div class="flex items-start justify-between gap-3">
+        <div class="flex items-center gap-3">
+          <div class="w-11 h-11 rounded-xl bg-tealLight text-tealAntique flex items-center justify-center shrink-0">
+            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+              <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+            </svg>
+          </div>
+          <div>
+            <h2 class="text-lg sm:text-xl font-extrabold text-ink">به بیت‌چین خوش آمدید!</h2>
+            <p class="text-xs text-inkMuted mt-0.5">روش بازی‌محور برای حفظ ماندگار شعر فارسی</p>
+          </div>
+        </div>
+        <button id="closeGuideX" type="button" class="w-10 h-10 rounded-xl text-inkMuted hover:bg-parchment hover:text-ink transition flex items-center justify-center" aria-label="بستن">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <ol class="space-y-2.5 text-sm text-ink leading-relaxed">
+        <li class="flex items-start gap-3 bg-parchment/60 p-3 rounded-xl border border-parchmentDark/60">
+          <span class="w-6 h-6 rounded-full bg-tealAntique text-paper text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">۱</span>
+          <span><strong>شعر دلخواهتان را وارد کنید</strong> (حتی با کپی مستقیم از گنجور) یا از گزیده‌های آماده حافظ، سعدی و مولانا شروع کنید.</span>
+        </li>
+        <li class="flex items-start gap-3 bg-parchment/60 p-3 rounded-xl border border-parchmentDark/60">
+          <span class="w-6 h-6 rounded-full bg-tealAntique text-paper text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">۲</span>
+          <span>هر بیت از وسط به دو کارت مصراع بریده و بُر زده می‌شود. با کمک <strong>معنا، وزن، قافیه و حافظه</strong> مصراع‌های جفت را کنار هم بچینید.</span>
+        </li>
+        <li class="flex items-start gap-3 bg-parchment/60 p-3 rounded-xl border border-parchmentDark/60">
+          <span class="w-6 h-6 rounded-full bg-tealAntique text-paper text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">۳</span>
+          <span><strong>ذخیره خودکار در مرورگر:</strong> شعرها، بازی‌های نیمه‌تمام و روزهای تمرین ماهانه شما به‌صورت خودکار روی همین گوشی/مرورگر ذخیره می‌شوند تا هر روز ادامه دهید.</span>
+        </li>
+        <li class="flex items-start gap-3 bg-terracottaLight/70 p-3 rounded-xl border border-terracotta/25">
+          <span class="w-6 h-6 rounded-full bg-terracotta text-paper text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">۴</span>
+          <span>برای انتقال شعرها و آمارتان به دستگاه دیگر، همیشه می‌توانید از دکمه <strong>«پشتیبان‌گیری»</strong> فایل JSON بگیرید.</span>
+        </li>
+      </ol>
+
+      <div class="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-parchmentDark">
+        <label class="inline-flex items-center gap-2 text-xs sm:text-sm text-inkMuted cursor-pointer select-none min-h-[44px]">
+          <input id="dontShowGuideCheckbox" type="checkbox" class="w-4 h-4 rounded accent-tealAntique" />
+          <span>دیگر در شروع نشان نده</span>
+        </label>
+        <button id="closeGuideBtn" type="button"
+          class="min-h-[48px] px-5 rounded-xl bg-tealAntique text-paper text-sm font-bold hover:bg-tealAntique/90 transition shadow-sm">
+          متوجه شدم، شروع کنیم!
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== مودال ۲: تبریک پایان دور ==================== -->
+  <div id="completionModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-ink/55 backdrop-blur-xs p-4 overflow-y-auto">
+    <div class="modal-panel bg-paper rounded-2xl border border-parchmentDark max-w-2xl w-full p-5 sm:p-6 shadow-2xl space-y-4 my-auto max-h-[90vh] flex flex-col">
+      <div class="text-center space-y-1">
+        <div class="w-14 h-14 mx-auto rounded-2xl bg-tealLight text-tealAntique flex items-center justify-center mb-2">
+          <svg class="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path>
+            <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path>
+            <path d="M4 22h16"></path>
+            <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path>
+            <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path>
+            <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path>
+          </svg>
+        </div>
+        <h2 class="text-xl sm:text-2xl font-extrabold text-ink">آفرین! تمام ابیات کامل شدند</h2>
+        <p id="completionSubtitle" class="text-xs sm:text-sm text-inkMuted"></p>
+      </div>
+
+      <!-- آمار پایان دست -->
+      <div class="grid grid-cols-3 gap-2.5 text-center">
+        <div class="bg-parchment/70 rounded-xl p-3 border border-parchmentDark">
+          <div class="text-[11px] text-inkMuted">زمان</div>
+          <div id="compTime" class="text-base sm:text-lg font-extrabold text-ink mt-0.5 tabular-nums">۰۰:۰۰</div>
+        </div>
+        <div class="bg-parchment/70 rounded-xl p-3 border border-parchmentDark">
+          <div class="text-[11px] text-inkMuted">دقت</div>
+          <div id="compAccuracy" class="text-base sm:text-lg font-extrabold text-tealAntique mt-0.5">۱۰۰٪</div>
+        </div>
+        <div class="bg-parchment/70 rounded-xl p-3 border border-parchmentDark">
+          <div class="text-[11px] text-inkMuted">روزهای تمرین</div>
+          <div id="compPracticeDays" class="text-base sm:text-lg font-extrabold text-terracotta mt-0.5">۱ روز</div>
+        </div>
+      </div>
+
+      <!-- مرور نهایی شعر برای تثبیت حافظه -->
+      <div class="flex-1 overflow-y-auto bg-parchment/50 rounded-xl border border-parchmentDark p-3.5 space-y-2">
+        <h3 class="text-xs font-bold text-inkMuted mb-1.5">مرور نهایی ابیات برای تثبیت در حافظه:</h3>
+        <div id="completionPoemReview" class="space-y-2"></div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
+        <button id="playAgainBtn" type="button"
+          class="min-h-[48px] px-5 rounded-xl bg-tealAntique text-paper text-sm font-bold hover:bg-tealAntique/90 transition shadow-sm flex items-center justify-center gap-2">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="23 4 23 10 17 10"></polyline>
+            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+          </svg>
+          <span>تمرین مجدد</span>
+        </button>
+        <button id="backToLibraryFromCompBtn" type="button"
+          class="min-h-[48px] px-5 rounded-xl bg-parchment border border-parchmentDark text-ink text-sm font-bold hover:border-tealAntique/50 hover:text-tealAntique transition">
+          بازگشت به فهرست شعرها
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== مودال ۳: پشتیبان‌گیری و بازیابی کامل (JSON) ==================== -->
+  <div id="backupModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-ink/55 backdrop-blur-xs p-4 overflow-y-auto">
+    <div class="modal-panel bg-paper rounded-2xl border border-parchmentDark max-w-lg w-full p-5 sm:p-6 shadow-2xl space-y-5 my-auto">
+      <div class="flex items-center justify-between">
+        <h2 class="text-lg font-extrabold text-ink">پشتیبان‌گیری و بازیابی (JSON)</h2>
+        <button id="closeBackupModalBtn" type="button" class="w-10 h-10 rounded-xl text-inkMuted hover:bg-parchment hover:text-ink transition flex items-center justify-center">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <!-- بخش خروجی -->
+      <div class="bg-parchment/60 rounded-xl p-4 border border-parchmentDark space-y-3">
+        <h3 class="text-sm font-bold text-ink">ذخیره نسخه پشتیبان کامل</h3>
+        <p class="text-xs text-inkMuted leading-relaxed">
+          فایل پشتیبان شامل تمام <strong>شعرهای سفارشی</strong> و <strong>آمار پیشرفت ماهانه</strong> شماست تا در دستگاه دیگر هم بتوانید ادامه دهید یا شعرها را با دیگران به اشتراک بگذارید.
+        </p>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          <button id="exportJsonFileBtn" type="button"
+            class="min-h-[48px] px-4 rounded-xl bg-tealAntique text-paper text-xs sm:text-sm font-bold hover:bg-tealAntique/90 transition">
+            دانلود فایل JSON
+          </button>
+          <button id="copyJsonBtn" type="button"
+            class="min-h-[48px] px-4 rounded-xl bg-paper border border-parchmentDark text-ink text-xs sm:text-sm font-bold hover:border-tealAntique transition">
+            کپی متن پشتیبان
+          </button>
+        </div>
+      </div>
+
+      <!-- بخش ورودی -->
+      <div class="bg-parchment/60 rounded-xl p-4 border border-parchmentDark space-y-3">
+        <h3 class="text-sm font-bold text-ink">بازیابی از فایل یا متن JSON</h3>
+        <p class="text-xs text-inkMuted leading-relaxed">
+          فایل JSON را انتخاب کنید تا شعرها و آمار تمرین به کتابخانه فعلی شما اضافه و ادغام شوند.
+        </p>
+        <input id="importJsonFileInput" type="file" accept=".json,application/json"
+          class="block w-full text-xs text-inkMuted file:ml-3 file:py-2.5 file:px-3.5 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-terracottaLight file:text-terracotta hover:file:bg-terracotta hover:file:text-paper file:transition cursor-pointer" />
+        <textarea id="importJsonTextarea" rows="3" dir="ltr" placeholder='{"decks": [...], "stats": {...}}'
+          class="w-full px-3 py-2 rounded-xl bg-paper border border-parchmentDark font-mono text-ink focus:outline-none focus:border-tealAntique"></textarea>
+        <button id="importJsonTextBtn" type="button"
+          class="w-full min-h-[48px] px-4 rounded-xl bg-terracotta text-paper text-sm font-bold hover:bg-terracotta/90 transition">
+          بارگذاری از متن JSON
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== مودال ۴: تایید حذف شعر ==================== -->
+  <div id="confirmDeleteModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-ink/55 backdrop-blur-xs p-4">
+    <div class="modal-panel bg-paper rounded-2xl border border-parchmentDark max-w-sm w-full p-5 sm:p-6 shadow-2xl space-y-4">
+      <h3 class="text-lg font-extrabold text-ink">حذف شعر</h3>
+      <p id="confirmDeleteText" class="text-sm text-inkMuted leading-relaxed"></p>
+      <div class="grid grid-cols-2 gap-2.5 pt-2">
+        <button id="cancelDeleteBtn" type="button"
+          class="min-h-[48px] rounded-xl bg-parchment border border-parchmentDark text-sm font-bold text-ink hover:bg-parchmentDark/60 transition">
+          انصراف
+        </button>
+        <button id="confirmDeleteBtn" type="button"
+          class="min-h-[48px] rounded-xl bg-terracotta text-paper text-sm font-bold hover:bg-terracotta/90 transition">
+          بله، حذف شود
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== نوتیفیکیشن (Toast) ==================== -->
+  <div id="toastContainer" class="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 pointer-events-none flex flex-col items-center gap-2 w-full max-w-sm px-4"></div>
+
+  <script>
+    /**
+     * =========================================================================
+     * بیت‌چین (Beyt-Chin) — نسخه موبایل‌فرست با ذخیره دائمی و پیگیری تمرین ماهانه
+     * =========================================================================
+     */
+
+    const STORAGE_KEYS = {
+      CUSTOM_DECKS: 'beytchin_custom_decks_v2',
+      STATS: 'beytchin_stats_v2',
+      ACTIVE_SESSION: 'beytchin_active_session_v2',
+      HIDE_GUIDE: 'beytchin_hide_guide_v2',
+      MUTED: 'beytchin_muted_v2',
+    };
+
+    // هدف تعداد روز تمرین برای رسیدن به ۱۰۰٪ تسلط روی یک دست‌کارت
+    const MASTERY_TARGET_DAYS = 10;
+
+    // سه دست‌کارت آماده و اصیل از اشعار معروف فارسی (هر کدام ۷ بیت)
+    const BUILTIN_DECKS = [
+      {
+        id: 'builtin_hafez',
+        title: 'گزیده حافظ',
+        author: 'لسان‌الغیب حافظ شیرازی',
+        isBuiltIn: true,
+        couplets: [
+          { m1: 'الا یا ایها الساقی ادر کاسا و ناولها', m2: 'که عشق آسان نمود اول ولی افتاد مشکل‌ها' },
+          { m1: 'در ازل پرتو حسنت ز تجلی دم زد', m2: 'عشق پیدا شد و آتش به همه عالم زد' },
+          { m1: 'شب تاریک و بیم موج و گردابی چنین هایل', m2: 'کجا دانند حال ما سبکباران ساحل‌ها' },
+          { m1: 'مژده ای دل که مسیحا نفسی می‌آید', m2: 'که ز انفاس خوشش بوی کسی می‌آید' },
+          { m1: 'درخت دوستی بنشان که کام دل به بار آرد', m2: 'نهال دشمنی برکن که رنج بی‌شمار آرد' },
+          { m1: 'سحر با باد می‌گفتم حدیث آرزومندی', m2: 'خطاب آمد که واثق شو به الطاف خداوندی' },
+          { m1: 'حضور خلوت انس است و دوستان جمعند', m2: 'و ان یکاد بخوانید و در فراز کنید' },
+        ]
+      },
+      {
+        id: 'builtin_saadi',
+        title: 'گزیده سعدی',
+        author: 'شیخ اجل سعدی شیرازی',
+        isBuiltIn: true,
+        couplets: [
+          { m1: 'بنی‌آدم اعضای یک پیکرند', m2: 'که در آفرینش ز یک گوهرند' },
+          { m1: 'سعدیا مرد نکونام نمیرد هرگز', m2: 'مرده آن است که نامش به نکویی نبرند' },
+          { m1: 'به جهان خرم از آنم که جهان خرم از اوست', m2: 'عاشقم بر همه عالم که همه عالم از اوست' },
+          { m1: 'مرا به هیچ بدادی و من هنوز بر آنم', m2: 'که از وجود تو مویی به عالمی نفروشم' },
+          { m1: 'ای ساربان آهسته ران کآرام جانم می‌رود', m2: 'وآن دل که با خود داشتم با دلستانم می‌رود' },
+          { m1: 'در آن نفس که بمیرم در آرزوی تو باشم', m2: 'بدان امید دهم جان که خاک کوی تو باشم' },
+          { m1: 'گر مخیر بکنندم به قیامت که چه خواهی', m2: 'دوست ما را و همه نعمت فردوس شما را' },
+        ]
+      },
+      {
+        id: 'builtin_rumi',
+        title: 'گزیده مولانا',
+        author: 'مولانا جلال‌الدین بلخی',
+        isBuiltIn: true,
+        couplets: [
+          { m1: 'بشنو از نی چون حکایت می‌کند', m2: 'از جدایی‌ها شکایت می‌کند' },
+          { m1: 'از نیستان تا مرا ببریده‌اند', m2: 'در نفیرم مرد و زن نالیده‌اند' },
+          { m1: 'هر کسی کاو دور ماند از اصل خویش', m2: 'باز جوید روزگار وصل خویش' },
+          { m1: 'ای قوم به حج رفته کجایید کجایید', m2: 'معشوق همین جاست بیایید بیایید' },
+          { m1: 'رو سر بنه به بالین تنها مرا رها کن', m2: 'ترک من خراب شبگرد مبتلا کن' },
+          { m1: 'ما ز بالاییم و بالا می‌رویم', m2: 'ما ز دریاییم و دریا می‌رویم' },
+          { m1: 'خنک آن قماربازی که بباخت هر چه بودش', m2: 'بنماند هیچش الا هوس قمار دیگر' },
+        ]
+      }
+    ];
+
+    // وضعیت کلی اپلیکیشن
+    const state = {
+      customDecks: [],
+      stats: {}, // { [deckId]: { practiceCount, bestAccuracy, practiceDays: ['YYYY-MM-DD'], lastPracticedDay: 'YYYY-MM-DD' } }
+      activeSession: null,
+      muted: false,
+      editingDeckId: null,
+      parseMode: 'lineByLine',
+      suggestedMode: null,
+      pendingDeleteId: null,
+      currentView: 'library',
+
+      // وضعیت بازی فعال
+      game: {
+        deck: null,
+        roundCouplets: [],
+        cards: [], // [{ id, coupletIdx, hemistich: 1|2, text, matched }]
+        selectedCardId: null,
+        isLocked: false,
+        matchedCouplets: [],
+        attempts: 0,
+        correctMatches: 0,
+        errors: 0,
+        secondsElapsed: 0,
+        timerInterval: null,
+        showLabels: false,
+        filter: 'all', // 'all' | '1' | '2'
+      }
+    };
+
+    // ==================== ابزارهای تاریخ شمسی و کمکی ====================
+
+    /** تبدیل ارقام انگلیسی به فارسی */
+    function toPersianDigits(val) {
+      const fa = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
+      return String(val).replace(/\d/g, (d) => fa[Number(d)]);
+    }
+
+    /** کلید تاریخ محلی روز به فرمت YYYY-MM-DD */
+    function getLocalDayKey(date = new Date()) {
+      const y = date.getFullYear();
+      const m = String(date.getMonth() + 1).padStart(2, '0');
+      const d = String(date.getDate()).padStart(2, '0');
+      return `${y}-${m}-${d}`;
+    }
+
+    /** تبدیل کلید YYYY-MM-DD به شیء Date محلی */
+    function parseDayKey(dayKey) {
+      const [y, m, d] = dayKey.split('-').map(Number);
+      return new Date(y, m - 1, d, 12, 0, 0);
+    }
+
+    /** استخراج نام ماه و سال شمسی (مثلاً: آذر ۱۴۰۵) */
+    function getPersianMonthLabel(date = new Date()) {
+      try {
+        return new Intl.DateTimeFormat('fa-IR', { month: 'long', year: 'numeric' }).format(date);
+      } catch (e) {
+        return 'این ماه';
+      }
+    }
+
+    /** استخراج کلید ماه شمسی برای مقایسه روزهای فعال در ماه جاری */
+    function getPersianMonthKey(date = new Date()) {
+      try {
+        const parts = new Intl.DateTimeFormat('fa-IR-u-nu-latn', { year: 'numeric', month: '2-digit' }).formatToParts(date);
+        const y = parts.find((p) => p.type === 'year')?.value || '';
+        const m = parts.find((p) => p.type === 'month')?.value || '';
+        return `${y}-${m}`;
+      } catch (e) {
+        return `${date.getFullYear()}-${date.getMonth() + 1}`;
+      }
+    }
+
+    /** نمایش خوانای آخرین زمان تمرین (امروز، دیروز یا تاریخ شمسی) */
+    function formatRelativePersianDay(dayKey) {
+      if (!dayKey) return 'هنوز تمرین نشده';
+      const todayKey = getLocalDayKey(new Date());
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      const yesterdayKey = getLocalDayKey(yesterday);
+
+      if (dayKey === todayKey) return 'امروز';
+      if (dayKey === yesterdayKey) return 'دیروز';
+
+      try {
+        const dateObj = parseDayKey(dayKey);
+        return new Intl.DateTimeFormat('fa-IR', { day: 'numeric', month: 'long' }).format(dateObj);
+      } catch (e) {
+        return toPersianDigits(dayKey);
+      }
+    }
+
+    /** فرمت زمان ۰۰:۰۰ */
+    function formatTime(totalSeconds) {
+      const mins = Math.floor(totalSeconds / 60);
+      const secs = totalSeconds % 60;
+      return toPersianDigits(`${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`);
+    }
+
+    /** الگوریتم بُر زدن استاندارد Fisher-Yates */
+    function shuffleArray(arr) {
+      const copy = [...arr];
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
+    }
+
+    /** ایمن‌سازی متن برای جلوگیری از XSS */
+    function escapeHtml(str) {
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
+    /** نمایش پیام Toast */
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      const colors = {
+        info: 'bg-ink text-paper',
+        success: 'bg-tealAntique text-paper',
+        error: 'bg-terracotta text-paper',
+      };
+      toast.className = `${colors[type] || colors.info} px-4 py-3 rounded-xl shadow-lg text-xs sm:text-sm font-semibold transition-all duration-300 opacity-0 translate-y-3 text-center`;
+      toast.textContent = message;
+      container.appendChild(toast);
+
+      requestAnimationFrame(() => toast.classList.remove('opacity-0', 'translate-y-3'));
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-y-2');
+        setTimeout(() => toast.remove(), 300);
+      }, 2600);
+    }
+
+    // ==================== موتور صوتی (Web Audio API) ====================
+
+    let audioCtx = null;
+
+    function getAudioContext() {
+      if (state.muted) return null;
+      try {
+        if (!audioCtx) {
+          const Ctx = window.AudioContext || window.webkitAudioContext;
+          if (Ctx) audioCtx = new Ctx();
+        }
+        if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+        return audioCtx;
+      } catch (e) {
+        return null;
+      }
+    }
+
+    function playSelectSound() {
+      const ctx = getAudioContext();
+      if (!ctx) return;
+      try {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(510, ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(610, ctx.currentTime + 0.05);
+        gain.gain.setValueAtTime(0.055, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.07);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.08);
+      } catch (e) {}
+    }
+
+    function playMatchSound() {
+      const ctx = getAudioContext();
+      if (!ctx) return;
+      try {
+        [523.25, 659.25, 783.99].forEach((freq, idx) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'triangle';
+          const t = ctx.currentTime + idx * 0.065;
+          osc.frequency.setValueAtTime(freq, t);
+          gain.gain.setValueAtTime(0.001, t);
+          gain.gain.linearRampToValueAtTime(0.11, t + 0.02);
+          gain.gain.exponentialRampToValueAtTime(0.001, t + 0.34);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(t);
+          osc.stop(t + 0.36);
+        });
+      } catch (e) {}
+    }
+
+    function playMismatchSound() {
+      const ctx = getAudioContext();
+      if (!ctx) return;
+      try {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(220, ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(155, ctx.currentTime + 0.16);
+        gain.gain.setValueAtTime(0.075, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.18);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.19);
+      } catch (e) {}
+    }
+
+    function playWinSound() {
+      const ctx = getAudioContext();
+      if (!ctx) return;
+      try {
+        [523.25, 659.25, 783.99, 1046.5].forEach((freq, idx) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'triangle';
+          const t = ctx.currentTime + idx * 0.095;
+          osc.frequency.setValueAtTime(freq, t);
+          gain.gain.setValueAtTime(0.001, t);
+          gain.gain.linearRampToValueAtTime(0.12, t + 0.025);
+          gain.gain.exponentialRampToValueAtTime(0.001, t + 0.52);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(t);
+          osc.stop(t + 0.55);
+        });
+      } catch (e) {}
+    }
+
+    // ==================== مدیریت ذخیره‌سازی محلی (localStorage) ====================
+
+    function loadStorage() {
+      try {
+        // انتقال ملایم از نسخه ۱ در صورت وجود
+        const rawDecks = localStorage.getItem(STORAGE_KEYS.CUSTOM_DECKS) || localStorage.getItem('beytchin_custom_decks_v1');
+        if (rawDecks) {
+          const parsed = JSON.parse(rawDecks);
+          if (Array.isArray(parsed)) state.customDecks = parsed;
+        }
+
+        const rawStats = localStorage.getItem(STORAGE_KEYS.STATS) || localStorage.getItem('beytchin_stats_v1');
+        if (rawStats) {
+          const parsedStats = JSON.parse(rawStats) || {};
+          // اطمینان از وجود فیلدهای جدید روی آمار قدیمی
+          Object.keys(parsedStats).forEach((k) => {
+            const s = parsedStats[k] || {};
+            state.stats[k] = {
+              practiceCount: Number(s.practiceCount) || 0,
+              bestAccuracy: s.bestAccuracy !== undefined && s.bestAccuracy !== null ? Number(s.bestAccuracy) : null,
+              practiceDays: Array.isArray(s.practiceDays) ? s.practiceDays : [],
+              lastPracticedDay: s.lastPracticedDay || null,
+            };
+          });
+        }
+
+        const rawSession = localStorage.getItem(STORAGE_KEYS.ACTIVE_SESSION);
+        if (rawSession) {
+          const parsedSession = JSON.parse(rawSession);
+          if (parsedSession && parsedSession.deckId && Array.isArray(parsedSession.cards)) {
+            state.activeSession = parsedSession;
+          }
+        }
+
+        state.muted = localStorage.getItem(STORAGE_KEYS.MUTED) === 'true';
+      } catch (e) {
+        console.warn('خطا در خواندن حافظه محلی:', e);
+      }
+      updateSoundToggleUI();
+    }
+
+    function saveCustomDecks() {
+      try {
+        localStorage.setItem(STORAGE_KEYS.CUSTOM_DECKS, JSON.stringify(state.customDecks));
+      } catch (e) {
+        showToast('فضای ذخیره مرورگر پر است یا در دسترس نیست.', 'error');
+      }
+    }
+
+    function saveStats() {
+      try {
+        localStorage.setItem(STORAGE_KEYS.STATS, JSON.stringify(state.stats));
+      } catch (e) {}
+    }
+
+    /** ذخیره خودکار وضعیت بازی نیمه‌تمام */
+    function saveActiveSession() {
+      if (!state.game.deck) return;
+      const total = state.game.roundCouplets.length;
+      // اگر بازی تمام شده، جلسه نیمه‌تمام را پاک کن
+      if (state.game.correctMatches >= total && total > 0) {
+        clearActiveSession();
+        return;
+      }
+
+      const sessionData = {
+        deckId: state.game.deck.id,
+        roundCouplets: state.game.roundCouplets,
+        cards: state.game.cards,
+        matchedCouplets: state.game.matchedCouplets,
+        attempts: state.game.attempts,
+        correctMatches: state.game.correctMatches,
+        errors: state.game.errors,
+        secondsElapsed: state.game.secondsElapsed,
+        showLabels: state.game.showLabels,
+        updatedAt: Date.now(),
+      };
+      state.activeSession = sessionData;
+      try {
+        localStorage.setItem(STORAGE_KEYS.ACTIVE_SESSION, JSON.stringify(sessionData));
+      } catch (e) {}
+    }
+
+    function clearActiveSession() {
+      state.activeSession = null;
+      try {
+        localStorage.removeItem(STORAGE_KEYS.ACTIVE_SESSION);
+      } catch (e) {}
+    }
+
+    function getAllDecks() {
+      return [...state.customDecks, ...BUILTIN_DECKS];
+    }
+
+    function updateSoundToggleUI() {
+      const onIcon = document.getElementById('soundOnIcon');
+      const offIcon = document.getElementById('soundOffIcon');
+      if (state.muted) {
+        onIcon.classList.add('hidden');
+        offIcon.classList.remove('hidden');
+      } else {
+        onIcon.classList.remove('hidden');
+        offIcon.classList.add('hidden');
+      }
+    }
+
+    // ==================== محاسبه آمار چالش ماهانه و زنجیره روزانه ====================
+
+    function computeMonthlySummary() {
+      const allDaysSet = new Set();
+      let totalSessions = 0;
+
+      Object.values(state.stats).forEach((s) => {
+        totalSessions += s.practiceCount || 0;
+        if (Array.isArray(s.practiceDays)) {
+          s.practiceDays.forEach((d) => allDaysSet.add(d));
+        }
+      });
+
+      const currentPersianMonth = getPersianMonthKey(new Date());
+      let monthActiveDays = 0;
+      allDaysSet.forEach((dayKey) => {
+        if (getPersianMonthKey(parseDayKey(dayKey)) === currentPersianMonth) {
+          monthActiveDays++;
+        }
+      });
+
+      // محاسبه زنجیره روزهای متوالی (Streak) منتهی به امروز یا دیروز
+      let streak = 0;
+      const cursor = new Date();
+      const todayKey = getLocalDayKey(cursor);
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      const yesterdayKey = getLocalDayKey(yesterday);
+
+      if (allDaysSet.has(todayKey) || allDaysSet.has(yesterdayKey)) {
+        if (!allDaysSet.has(todayKey)) {
+          cursor.setDate(cursor.getDate() - 1);
+        }
+        while (allDaysSet.has(getLocalDayKey(cursor))) {
+          streak++;
+          cursor.setDate(cursor.getDate() - 1);
+        }
+      }
+
+      return { monthActiveDays, streak, totalSessions };
+    }
+
+    // ==================== تغییر نماها (Views) ====================
+
+    function switchView(viewName) {
+      if (state.currentView === 'game' && viewName !== 'game') {
+        saveActiveSession();
+        stopGameTimer();
+      }
+      state.currentView = viewName;
+
+      document.getElementById('libraryView').classList.add('hidden');
+      document.getElementById('editorView').classList.add('hidden');
+      document.getElementById('gameView').classList.add('hidden');
+
+      if (viewName === 'library') {
+        document.getElementById('libraryView').classList.remove('hidden');
+        renderLibrary();
+      } else if (viewName === 'editor') {
+        document.getElementById('editorView').classList.remove('hidden');
+      } else if (viewName === 'game') {
+        document.getElementById('gameView').classList.remove('hidden');
+      }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // ==================== رندر صفحه اصلی (کتابخانه + بنر ادامه بازی + آمار ماهانه) ====================
+
+    function renderResumeBanner() {
+      const banner = document.getElementById('resumeSessionBanner');
+      const session = state.activeSession;
+      if (!session) {
+        banner.classList.add('hidden');
+        return;
+      }
+
+      const deck = getAllDecks().find((d) => d.id === session.deckId);
+      if (!deck) {
+        clearActiveSession();
+        banner.classList.add('hidden');
+        return;
+      }
+
+      const total = session.roundCouplets.length;
+      const done = session.correctMatches || 0;
+      document.getElementById('resumeDeckTitle').textContent = deck.title;
+      document.getElementById('resumeDeckMeta').textContent =
+        `${toPersianDigits(done)} از ${toPersianDigits(total)} بیت کامل شده • زمان سپری‌شده: ${formatTime(session.secondsElapsed || 0)}`;
+      banner.classList.remove('hidden');
+    }
+
+    function renderLibrary() {
+      renderResumeBanner();
+
+      // آمار چالش ماهانه
+      document.getElementById('currentPersianMonthBadge').textContent = getPersianMonthLabel(new Date());
+      const { monthActiveDays, streak, totalSessions } = computeMonthlySummary();
+      document.getElementById('summaryMonthDays').textContent = `${toPersianDigits(monthActiveDays)} روز`;
+      document.getElementById('summaryStreak').textContent = `${toPersianDigits(streak)} روز`;
+      document.getElementById('summaryTotalSessions').textContent = `${toPersianDigits(totalSessions)} بار`;
+
+      const grid = document.getElementById('decksGrid');
+      const allDecks = getAllDecks();
+
+      grid.innerHTML = allDecks.map((deck) => {
+        const s = state.stats[deck.id] || { practiceCount: 0, bestAccuracy: null, practiceDays: [], lastPracticedDay: null };
+        const uniqueDays = Array.isArray(s.practiceDays) ? s.practiceDays.length : 0;
+        const masteryPct = Math.min(100, Math.round((uniqueDays / MASTERY_TARGET_DAYS) * 100));
+        const sample = deck.couplets[0];
+
+        const badgeHtml = deck.isBuiltIn
+          ? `<span class="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-tealLight text-tealAntique">آماده</span>`
+          : `<span class="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-terracottaLight text-terracotta">شخصی</span>`;
+
+        const customActionsHtml = deck.isBuiltIn ? '' : `
+          <div class="flex items-center gap-1">
+            <button type="button" onclick="openEditorForEdit('${deck.id}')"
+              class="w-10 h-10 rounded-xl text-inkMuted hover:text-tealAntique hover:bg-parchment transition flex items-center justify-center" title="ویرایش شعر">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+              </svg>
+            </button>
+            <button type="button" onclick="requestDeleteDeck('${deck.id}')"
+              class="w-10 h-10 rounded-xl text-inkMuted hover:text-terracotta hover:bg-terracottaLight/70 transition flex items-center justify-center" title="حذف شعر">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="3 6 5 6 21 6"></polyline>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+              </svg>
+            </button>
+          </div>
+        `;
+
+        return `
+          <article class="bg-paper rounded-2xl border border-parchmentDark p-4 sm:p-5 shadow-card hover:shadow-cardHover hover:border-tealAntique/40 transition flex flex-col justify-between gap-4">
+            <div class="space-y-3">
+              <div class="flex items-start justify-between gap-2">
+                <div class="min-w-0">
+                  <div class="flex items-center gap-2 flex-wrap">
+                    <h3 class="text-base sm:text-lg font-extrabold text-ink truncate">${escapeHtml(deck.title)}</h3>
+                    ${badgeHtml}
+                  </div>
+                  ${deck.author ? `<p class="text-xs text-inkMuted mt-0.5 truncate">${escapeHtml(deck.author)}</p>` : ''}
+                </div>
+                ${customActionsHtml}
+              </div>
+
+              <!-- پیش‌نمایش بیت اول -->
+              <div class="bg-parchment/65 rounded-xl p-3 border border-parchmentDark/70 text-xs text-inkMuted leading-relaxed space-y-1">
+                <div class="truncate text-ink/90">${escapeHtml(sample.m1)}</div>
+                <div class="truncate text-inkMuted">${escapeHtml(sample.m2)}</div>
+              </div>
+
+              <!-- نوار تسلط و آمار تمرین ماهانه -->
+              <div class="space-y-1.5">
+                <div class="flex items-center justify-between text-[11px]">
+                  <span class="font-bold text-tealAntique">تسلط: ${toPersianDigits(masteryPct)}٪</span>
+                  <span class="text-inkMuted">${toPersianDigits(uniqueDays)} روز تمرین • ${toPersianDigits(s.practiceCount)} بار تکمیل</span>
+                </div>
+                <div class="w-full h-2 bg-parchmentDark/70 rounded-full overflow-hidden">
+                  <div class="h-full bg-tealAntique rounded-full transition-all duration-500" style="width: ${masteryPct}%"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="space-y-3 pt-2.5 border-t border-parchmentDark/70">
+              <div class="flex items-center justify-between text-[11px] text-inkMuted">
+                <span>${toPersianDigits(deck.couplets.length)} بیت</span>
+                <span>آخرین تمرین: <strong class="text-ink">${formatRelativePersianDay(s.lastPracticedDay)}</strong></span>
+                ${s.bestAccuracy !== null ? `<span>دقت: <strong class="text-terracotta">${toPersianDigits(s.bestAccuracy)}٪</strong></span>` : ''}
+              </div>
+
+              <button type="button" onclick="startFreshGame('${deck.id}')"
+                class="w-full min-h-[48px] px-4 rounded-xl bg-tealAntique text-paper text-sm font-bold hover:bg-tealAntique/90 transition flex items-center justify-center gap-2 shadow-xs">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                  <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                </svg>
+                <span>شروع تمرین</span>
+              </button>
+            </div>
+          </article>
+        `;
+      }).join('');
+    }
+
+    // ==================== ویرایشگر هوشمند شعر ====================
+
+    function parsePoemText(rawText, mode) {
+      const lines = rawText
+        .split(/\r?\n/)
+        .map((line) => line.trim())
+        .filter((line) => line.length > 0);
+
+      const couplets = [];
+      let warning = '';
+
+      if (mode === 'lineByLine') {
+        for (let i = 0; i + 1 < lines.length; i += 2) {
+          couplets.push({ m1: lines[i], m2: lines[i + 1] });
+        }
+        if (lines.length % 2 !== 0) {
+          warning = 'تعداد مصراع‌ها فرد است؛ آخرین خط بدون جفت در نظر گرفته نشد.';
+        }
+      } else {
+        // جداکننده‌ها: Tab، /، *، |، —، – یا حداقل ۳ فاصله
+        const delimiterRegex = /\s*(?:\/|\*|\||—|–|\t|\s{3,})\s*/;
+        let skipped = 0;
+        lines.forEach((line) => {
+          const parts = line.split(delimiterRegex).map((p) => p.trim()).filter(Boolean);
+          if (parts.length >= 2) {
+            couplets.push({ m1: parts[0], m2: parts.slice(1).join(' ') });
+          } else {
+            skipped++;
+          }
+        });
+        if (skipped > 0) {
+          warning = `${toPersianDigits(skipped)} خط جداکننده معتبر نداشت و نادیده گرفته شد.`;
+        }
+      }
+
+      return { couplets, warning };
+    }
+
+    function detectSuggestedMode(rawText) {
+      const lines = rawText.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+      if (lines.length === 0) return null;
+      const delimiterRegex = /(?:\/|\*|\||—|–|\t|\s{3,})/;
+      const withDelimiter = lines.filter((l) => delimiterRegex.test(l)).length;
+      return withDelimiter >= Math.ceil(lines.length * 0.55) ? 'singleLine' : 'lineByLine';
+    }
+
+    function updateParseModeUI() {
+      const btn1 = document.getElementById('modeLineByLineBtn');
+      const btn2 = document.getElementById('modeSingleLineBtn');
+
+      if (state.parseMode === 'lineByLine') {
+        btn1.className = 'min-h-[54px] px-3.5 py-2.5 rounded-lg text-sm transition text-right flex flex-col justify-center gap-0.5 bg-paper text-tealAntique shadow-xs border border-tealAntique/35';
+        btn2.className = 'min-h-[54px] px-3.5 py-2.5 rounded-lg text-sm transition text-right flex flex-col justify-center gap-0.5 text-inkMuted hover:text-ink';
+      } else {
+        btn2.className = 'min-h-[54px] px-3.5 py-2.5 rounded-lg text-sm transition text-right flex flex-col justify-center gap-0.5 bg-paper text-tealAntique shadow-xs border border-tealAntique/35';
+        btn1.className = 'min-h-[54px] px-3.5 py-2.5 rounded-lg text-sm transition text-right flex flex-col justify-center gap-0.5 text-inkMuted hover:text-ink';
+      }
+      updateEditorPreview();
+    }
+
+    function updateEditorPreview() {
+      const text = document.getElementById('poemTextarea').value;
+      const suggested = detectSuggestedMode(text);
+      const banner = document.getElementById('autoDetectBanner');
+      const bannerText = document.getElementById('autoDetectText');
+
+      if (suggested && suggested !== state.parseMode && text.trim().length > 10) {
+        state.suggestedMode = suggested;
+        bannerText.textContent = suggested === 'singleLine'
+          ? 'به نظر می‌رسد هر بیت در یک خط نوشته شده است.'
+          : 'به نظر می‌رسد هر مصراع در یک خط جداگانه است (سبک گنجور).';
+        banner.classList.remove('hidden');
+      } else {
+        state.suggestedMode = null;
+        banner.classList.add('hidden');
+      }
+
+      const { couplets, warning } = parsePoemText(text, state.parseMode);
+      const countText = document.getElementById('previewCountText');
+      const statusDot = document.getElementById('previewStatusDot');
+      const warningEl = document.getElementById('previewWarningText');
+      const listEl = document.getElementById('previewCoupletsList');
+
+      countText.textContent = `${toPersianDigits(couplets.length)} بیت معتبر شناسایی شد`;
+      statusDot.className = couplets.length >= 2
+        ? 'w-2.5 h-2.5 rounded-full bg-emeraldSoft'
+        : 'w-2.5 h-2.5 rounded-full bg-terracotta';
+
+      if (warning) {
+        warningEl.textContent = warning;
+        warningEl.classList.remove('hidden');
+      } else {
+        warningEl.classList.add('hidden');
+      }
+
+      if (couplets.length > 0) {
+        const previewItems = couplets.slice(0, 3);
+        listEl.innerHTML = previewItems.map((c, i) => `
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5 sm:gap-4 bg-paper px-3 py-2.5 rounded-xl border border-parchmentDark/70 text-xs">
+            <div class="text-ink"><span class="text-tealAntique font-bold ml-1">${toPersianDigits(i + 1)}.</span>${escapeHtml(c.m1)}</div>
+            <div class="text-inkMuted sm:text-ink">${escapeHtml(c.m2)}</div>
+          </div>
+        `).join('') + (couplets.length > 3 ? `<div class="text-[11px] text-center text-inkMuted pt-1">و ${toPersianDigits(couplets.length - 3)} بیت دیگر...</div>` : '');
+        listEl.classList.remove('hidden');
+      } else {
+        listEl.classList.add('hidden');
+      }
+    }
+
+    function openEditorForNew() {
+      state.editingDeckId = null;
+      document.getElementById('editorHeading').textContent = 'افزودن شعر جدید';
+      document.getElementById('deckTitleInput').value = '';
+      document.getElementById('deckAuthorInput').value = '';
+      document.getElementById('poemTextarea').value = '';
+      state.parseMode = 'lineByLine';
+      updateParseModeUI();
+      switchView('editor');
+    }
+
+    function openEditorForEdit(deckId) {
+      const deck = state.customDecks.find((d) => d.id === deckId);
+      if (!deck) return;
+      state.editingDeckId = deckId;
+      document.getElementById('editorHeading').textContent = 'ویرایش شعر';
+      document.getElementById('deckTitleInput').value = deck.title;
+      document.getElementById('deckAuthorInput').value = deck.author || '';
+      state.parseMode = 'lineByLine';
+      document.getElementById('poemTextarea').value = deck.couplets.map((c) => `${c.m1}\n${c.m2}`).join('\n\n');
+      updateParseModeUI();
+      switchView('editor');
+    }
+
+    function saveEditorDeck(andPlay = false) {
+      const title = document.getElementById('deckTitleInput').value.trim();
+      const author = document.getElementById('deckAuthorInput').value.trim();
+      const rawText = document.getElementById('poemTextarea').value;
+      const { couplets } = parsePoemText(rawText, state.parseMode);
+
+      if (!title) {
+        showToast('لطفاً عنوان شعر را وارد کنید.', 'error');
+        document.getElementById('deckTitleInput').focus();
+        return;
+      }
+
+      if (couplets.length < 2) {
+        showToast('برای بازی حداقل ۲ بیت معتبر لازم است.', 'error');
+        document.getElementById('poemTextarea').focus();
+        return;
+      }
+
+      let savedDeckId;
+      if (state.editingDeckId) {
+        const idx = state.customDecks.findIndex((d) => d.id === state.editingDeckId);
+        if (idx !== -1) {
+          state.customDecks[idx] = { ...state.customDecks[idx], title, author, couplets };
+          savedDeckId = state.editingDeckId;
+          // اگر بازی نیمه‌تمام مربوط به همین شعر ویرایش‌شده بود، پاک شود
+          if (state.activeSession && state.activeSession.deckId === savedDeckId) {
+            clearActiveSession();
+          }
+        }
+      } else {
+        savedDeckId = 'custom_' + Date.now();
+        state.customDecks.unshift({
+          id: savedDeckId,
+          title,
+          author,
+          isBuiltIn: false,
+          couplets,
+        });
+      }
+
+      saveCustomDecks();
+      showToast('شعر با موفقیت ذخیره شد.', 'success');
+
+      if (andPlay) {
+        startFreshGame(savedDeckId);
+      } else {
+        switchView('library');
+      }
+    }
+
+    // ==================== حذف شعر سفارشی ====================
+
+    function requestDeleteDeck(deckId) {
+      const deck = state.customDecks.find((d) => d.id === deckId);
+      if (!deck) return;
+      state.pendingDeleteId = deckId;
+      document.getElementById('confirmDeleteText').textContent =
+        `آیا از حذف «${deck.title}» و آمار تمرین آن مطمئن هستید؟`;
+      openModal('confirmDeleteModal');
+    }
+
+    function executeDeleteDeck() {
+      if (!state.pendingDeleteId) return;
+      if (state.activeSession && state.activeSession.deckId === state.pendingDeleteId) {
+        clearActiveSession();
+      }
+      state.customDecks = state.customDecks.filter((d) => d.id !== state.pendingDeleteId);
+      delete state.stats[state.pendingDeleteId];
+      saveCustomDecks();
+      saveStats();
+      state.pendingDeleteId = null;
+      closeModal('confirmDeleteModal');
+      renderLibrary();
+      showToast('شعر حذف شد.', 'info');
+    }
+
+    // ==================== منطق میز بازی جورچین (با ذخیره خودکار) ====================
+
+    function startFreshGame(deckId) {
+      const deck = getAllDecks().find((d) => d.id === deckId);
+      if (!deck) return;
+
+      const chosenCouplets = [...deck.couplets];
+      const rawCards = [];
+      chosenCouplets.forEach((couplet, idx) => {
+        rawCards.push({ id: `c_${idx}_1`, coupletIdx: idx, hemistich: 1, text: couplet.m1, matched: false });
+        rawCards.push({ id: `c_${idx}_2`, coupletIdx: idx, hemistich: 2, text: couplet.m2, matched: false });
+      });
+
+      state.game = {
+        deck,
+        roundCouplets: chosenCouplets,
+        cards: shuffleArray(rawCards),
+        selectedCardId: null,
+        isLocked: false,
+        matchedCouplets: [],
+        attempts: 0,
+        correctMatches: 0,
+        errors: 0,
+        secondsElapsed: 0,
+        timerInterval: null,
+        showLabels: false,
+        filter: 'all',
+      };
+
+      document.getElementById('showLabelsToggle').checked = false;
+      document.getElementById('gameDeckTitle').textContent = deck.title;
+
+      switchView('game');
+      updateFilterUI();
+      renderGameBoard();
+      renderCompletedCouplets();
+      updateGameHUD();
+      saveActiveSession();
+      startGameTimer();
+    }
+
+    /** بازیابی دقیق بازی نیمه‌تمام از localStorage */
+    function resumeSavedSession() {
+      const session = state.activeSession;
+      if (!session) return;
+      const deck = getAllDecks().find((d) => d.id === session.deckId);
+      if (!deck) {
+        clearActiveSession();
+        renderLibrary();
+        return;
+      }
+
+      state.game = {
+        deck,
+        roundCouplets: session.roundCouplets,
+        cards: session.cards,
+        selectedCardId: null,
+        isLocked: false,
+        matchedCouplets: session.matchedCouplets || [],
+        attempts: session.attempts || 0,
+        correctMatches: session.correctMatches || 0,
+        errors: session.errors || 0,
+        secondsElapsed: session.secondsElapsed || 0,
+        timerInterval: null,
+        showLabels: Boolean(session.showLabels),
+        filter: 'all',
+      };
+
+      document.getElementById('showLabelsToggle').checked = state.game.showLabels;
+      document.getElementById('gameDeckTitle').textContent = deck.title;
+
+      switchView('game');
+      updateFilterUI();
+      renderGameBoard();
+      renderCompletedCouplets();
+      updateGameHUD();
+      startGameTimer();
+      showToast('بازی نیمه‌تمام بازیابی شد.', 'success');
+    }
+
+    function startGameTimer() {
+      stopGameTimer();
+      state.game.timerInterval = setInterval(() => {
+        state.game.secondsElapsed++;
+        document.getElementById('statTimer').textContent = formatTime(state.game.secondsElapsed);
+      }, 1000);
+    }
+
+    function stopGameTimer() {
+      if (state.game.timerInterval) {
+        clearInterval(state.game.timerInterval);
+        state.game.timerInterval = null;
+      }
+    }
+
+    function updateGameHUD() {
+      const total = state.game.roundCouplets.length;
+      const matched = state.game.correctMatches;
+      const attempts = state.game.attempts;
+      const accuracy = attempts === 0 ? 100 : Math.round((matched / attempts) * 100);
+      const pct = total === 0 ? 0 : Math.round((matched / total) * 100);
+      const remaining = state.game.cards.filter((c) => !c.matched).length;
+
+      document.getElementById('statMatched').textContent = `${toPersianDigits(matched)} از ${toPersianDigits(total)} بیت`;
+      document.getElementById('statAccuracy').textContent = `${toPersianDigits(accuracy)}٪`;
+      document.getElementById('statTimer').textContent = formatTime(state.game.secondsElapsed);
+      document.getElementById('gameProgressBar').style.width = `${pct}%`;
+      document.getElementById('remainingCardsBadge').textContent =
+        remaining > 0 ? `${toPersianDigits(remaining)} کارت باقی‌مانده` : 'تمام شد!';
+    }
+
+    function updateFilterUI() {
+      const bar = document.getElementById('hemistichFilterBar');
+      if (state.game.showLabels) {
+        bar.classList.remove('hidden');
+        bar.classList.add('flex');
+      } else {
+        bar.classList.add('hidden');
+        bar.classList.remove('flex');
+        state.game.filter = 'all';
+      }
+
+      document.querySelectorAll('.filter-pill').forEach((btn) => {
+        const isActive = btn.dataset.filter === state.game.filter;
+        btn.className = isActive
+          ? 'filter-pill px-2.5 py-1.5 rounded-lg transition bg-paper text-tealAntique shadow-xs'
+          : 'filter-pill px-2.5 py-1.5 rounded-lg transition text-inkMuted hover:text-ink';
+      });
+    }
+
+    function renderGameBoard() {
+      const board = document.getElementById('cardsBoard');
+      let activeCards = state.game.cards.filter((c) => !c.matched);
+
+      if (state.game.showLabels && state.game.filter !== 'all') {
+        const targetH = Number(state.game.filter);
+        // اگر کارتی انتخاب شده، همیشه نشانش بده تا کاربر گم نشود
+        activeCards = activeCards.filter((c) => c.hemistich === targetH || c.id === state.game.selectedCardId);
+      }
+
+      if (activeCards.length === 0) {
+        board.innerHTML = `
+          <div class="col-span-full text-center py-8 bg-paper/75 rounded-2xl border border-dashed border-parchmentDark text-inkMuted text-sm">
+            همه کارت‌های این بخش جفت شدند!
+          </div>
+        `;
+        return;
+      }
+
+      board.innerHTML = activeCards.map((card) => {
+        const isSelected = state.game.selectedCardId === card.id;
+        const labelHtml = state.game.showLabels
+          ? `<span class="inline-block self-start text-[10px] font-bold px-2 py-0.5 rounded-md mb-1.5 ${
+              card.hemistich === 1
+                ? 'bg-tealLight text-tealAntique'
+                : 'bg-terracottaLight text-terracotta'
+            }">${card.hemistich === 1 ? 'مصراع اول' : 'مصراع دوم'}</span>`
+          : '';
+
+        return `
+          <button type="button"
+            data-card-id="${card.id}"
+            onclick="handleCardClick('${card.id}')"
+            class="hemistich-card ${isSelected ? 'selected' : ''} text-right w-full rounded-xl px-4 sm:px-5 py-3.5 sm:py-4 shadow-card focus:outline-none cursor-pointer flex flex-col justify-center min-h-[68px]">
+            ${labelHtml}
+            <span class="text-[15px] sm:text-base leading-7 sm:leading-8 text-ink font-medium block pr-2">
+              ${escapeHtml(card.text)}
+            </span>
+          </button>
+        `;
+      }).join('');
+    }
+
+    function handleCardClick(cardId) {
+      if (state.game.isLocked) return;
+      const clickedCard = state.game.cards.find((c) => c.id === cardId && !c.matched);
+      if (!clickedCard) return;
+
+      // لغو انتخاب در صورت لمس مجدد همان کارت
+      if (state.game.selectedCardId === cardId) {
+        state.game.selectedCardId = null;
+        renderGameBoard();
+        return;
+      }
+
+      // انتخاب کارت اول
+      if (!state.game.selectedCardId) {
+        state.game.selectedCardId = cardId;
+        playSelectSound();
+        renderGameBoard();
+        return;
+      }
+
+      // انتخاب کارت دوم و بررسی تطابق
+      const firstCard = state.game.cards.find((c) => c.id === state.game.selectedCardId);
+      if (!firstCard) return;
+
+      state.game.isLocked = true;
+      state.game.attempts++;
+
+      const el1 = document.querySelector(`[data-card-id="${firstCard.id}"]`);
+      const el2 = document.querySelector(`[data-card-id="${clickedCard.id}"]`);
+
+      if (firstCard.coupletIdx === clickedCard.coupletIdx && firstCard.hemistich !== clickedCard.hemistich) {
+        // تطابق موفق
+        state.game.correctMatches++;
+        playMatchSound();
+
+        if (el1) el1.classList.add('matched-anim');
+        if (el2) el2.classList.add('matched-anim');
+
+        const couplet = state.game.roundCouplets[firstCard.coupletIdx];
+
+        setTimeout(() => {
+          firstCard.matched = true;
+          clickedCard.matched = true;
+          state.game.selectedCardId = null;
+          state.game.matchedCouplets.unshift(couplet);
+          state.game.isLocked = false;
+
+          renderGameBoard();
+          renderCompletedCouplets();
+          updateGameHUD();
+
+          // ذخیره خودکار پس از هر بیت موفق
+          saveActiveSession();
+
+          if (state.game.correctMatches === state.game.roundCouplets.length) {
+            handleRoundCompletion();
+          }
+        }, 440);
+      } else {
+        // عدم تطابق
+        state.game.errors++;
+        playMismatchSound();
+        if (el1) el1.classList.add('mismatch-anim');
+        if (el2) el2.classList.add('mismatch-anim');
+
+        setTimeout(() => {
+          state.game.selectedCardId = null;
+          state.game.isLocked = false;
+          renderGameBoard();
+          updateGameHUD();
+          saveActiveSession();
+        }, 480);
+      }
+    }
+
+    /** بُر زدن مجدد فقط کارت‌های باقی‌مانده */
+    function reshuffleRemainingCards() {
+      if (state.game.isLocked) return;
+      const matched = state.game.cards.filter((c) => c.matched);
+      const remaining = shuffleArray(state.game.cards.filter((c) => !c.matched));
+      state.game.cards = [...remaining, ...matched];
+      state.game.selectedCardId = null;
+      renderGameBoard();
+      saveActiveSession();
+      playSelectSound();
+      showToast('کارت‌های باقی‌مانده بُر زده شدند.', 'info');
+    }
+
+    function renderCompletedCouplets() {
+      const listEl = document.getElementById('completedList');
+      const countLabel = document.getElementById('completedCountLabel');
+      const matched = state.game.matchedCouplets;
+
+      countLabel.textContent = `${toPersianDigits(matched.length)} بیت`;
+
+      if (matched.length === 0) {
+        listEl.innerHTML = `
+          <p class="text-xs sm:text-sm text-inkMuted/80 text-center py-4">
+            هر جفت مصراع درستی که پیدا کنید، به‌صورت یک بیت کامل اینجا چیده می‌شود.
+          </p>
+        `;
+        return;
+      }
+
+      listEl.innerHTML = matched.map((c, idx) => `
+        <div class="couplet-enter grid grid-cols-1 sm:grid-cols-2 gap-1.5 sm:gap-5 items-center bg-parchment/65 px-4 py-3 rounded-xl border border-parchmentDark/80">
+          <div class="text-sm sm:text-base text-ink font-medium leading-7 flex items-baseline gap-2">
+            <span class="text-xs font-bold text-tealAntique/75 shrink-0">${toPersianDigits(matched.length - idx)}.</span>
+            <span>${escapeHtml(c.m1)}</span>
+          </div>
+          <div class="text-sm sm:text-base text-ink font-medium leading-7 sm:border-r sm:border-parchmentDark sm:pr-4">
+            ${escapeHtml(c.m2)}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    /** راهنمایی: هایلایت یک جفت مصراع */
+    function triggerHint() {
+      if (state.game.isLocked) return;
+      const unmatched = state.game.cards.filter((c) => !c.matched);
+      if (unmatched.length < 2) return;
+
+      // اگر فیلتر روشن بود، روی «همه» بگذار تا هر دو کارت دیده شوند
+      if (state.game.filter !== 'all') {
+        state.game.filter = 'all';
+        updateFilterUI();
+        renderGameBoard();
+      }
+
+      let targetIdx;
+      if (state.game.selectedCardId) {
+        const sel = unmatched.find((c) => c.id === state.game.selectedCardId);
+        targetIdx = sel ? sel.coupletIdx : unmatched[0].coupletIdx;
+      } else {
+        targetIdx = unmatched[Math.floor(Math.random() * unmatched.length)].coupletIdx;
+      }
+
+      const pair = unmatched.filter((c) => c.coupletIdx === targetIdx);
+      pair.forEach((card, i) => {
+        const el = document.querySelector(`[data-card-id="${card.id}"]`);
+        if (el) {
+          el.classList.remove('hint-glow');
+          void el.offsetWidth;
+          el.classList.add('hint-glow');
+          if (i === 0) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        }
+      });
+      playSelectSound();
+    }
+
+    /** پایان دور، ثبت روز تمرین شمسی و نمایش مودال تبریک */
+    function handleRoundCompletion() {
+      stopGameTimer();
+      clearActiveSession();
+      playWinSound();
+
+      const deckId = state.game.deck.id;
+      const attempts = state.game.attempts;
+      const accuracy = attempts === 0 ? 100 : Math.round((state.game.correctMatches / attempts) * 100);
+      const todayKey = getLocalDayKey(new Date());
+
+      const prev = state.stats[deckId] || {
+        practiceCount: 0,
+        bestAccuracy: null,
+        practiceDays: [],
+        lastPracticedDay: null,
+      };
+
+      const daysSet = new Set(Array.isArray(prev.practiceDays) ? prev.practiceDays : []);
+      daysSet.add(todayKey);
+
+      state.stats[deckId] = {
+        practiceCount: (prev.practiceCount || 0) + 1,
+        bestAccuracy: prev.bestAccuracy === null ? accuracy : Math.max(prev.bestAccuracy, accuracy),
+        practiceDays: Array.from(daysSet).sort(),
+        lastPracticedDay: todayKey,
+      };
+      saveStats();
+
+      const totalDays = state.stats[deckId].practiceDays.length;
+
+      document.getElementById('completionSubtitle').textContent =
+        `دست‌کارت «${state.game.deck.title}» را با موفقیت به پایان رساندید.`;
+      document.getElementById('compTime').textContent = formatTime(state.game.secondsElapsed);
+      document.getElementById('compAccuracy').textContent = `${toPersianDigits(accuracy)}٪`;
+      document.getElementById('compPracticeDays').textContent = `${toPersianDigits(totalDays)} روز`;
+
+      const reviewEl = document.getElementById('completionPoemReview');
+      reviewEl.innerHTML = state.game.roundCouplets.map((c, idx) => `
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-1 sm:gap-4 bg-paper px-3.5 py-2.5 rounded-xl border border-parchmentDark/70 text-xs sm:text-sm">
+          <div class="text-ink leading-7">
+            <span class="text-xs font-bold text-tealAntique ml-1.5">${toPersianDigits(idx + 1)}.</span>${escapeHtml(c.m1)}
+          </div>
+          <div class="text-ink leading-7">${escapeHtml(c.m2)}</div>
+        </div>
+      `).join('');
+
+      openModal('completionModal');
+    }
+
+    // ==================== پشتیبان‌گیری و بازیابی کامل (JSON) ====================
+
+    function buildExportPayload() {
+      return JSON.stringify({
+        app: 'beyt-chin',
+        version: 2,
+        exportedAt: new Date().toISOString(),
+        decks: state.customDecks,
+        stats: state.stats,
+      }, null, 2);
+    }
+
+    function exportBackupAsFile() {
+      const dataStr = buildExportPayload();
+      const blob = new Blob([dataStr], { type: 'application/json;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `beyt-chin-backup-${getLocalDayKey()}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showToast('فایل پشتیبان دانلود شد.', 'success');
+    }
+
+    function copyBackupAsJson() {
+      const text = buildExportPayload();
+      const tempArea = document.createElement('textarea');
+      tempArea.value = text;
+      tempArea.style.position = 'fixed';
+      tempArea.style.opacity = '0';
+      document.body.appendChild(tempArea);
+      tempArea.select();
+      try {
+        document.execCommand('copy');
+        showToast('متن پشتیبان در کلیپ‌بورد کپی شد.', 'success');
+      } catch (e) {
+        showToast('امکان کپی خودکار وجود نداشت.', 'error');
+      }
+      document.body.removeChild(tempArea);
+    }
+
+    function importBackupFromJson(jsonStr) {
+      try {
+        const parsed = JSON.parse(jsonStr);
+        const incomingDecks = Array.isArray(parsed) ? parsed : (Array.isArray(parsed.decks) ? parsed.decks : []);
+        const incomingStats = parsed && typeof parsed.stats === 'object' && !Array.isArray(parsed.stats) ? parsed.stats : null;
+
+        let addedDecks = 0;
+        let mergedStats = 0;
+
+        const existingIds = new Set(state.customDecks.map((d) => d.id));
+
+        incomingDecks.forEach((d) => {
+          if (d && typeof d.title === 'string' && Array.isArray(d.couplets)) {
+            const validCouplets = d.couplets.filter(
+              (c) => c && typeof c.m1 === 'string' && typeof c.m2 === 'string' && c.m1.trim() && c.m2.trim()
+            );
+            if (validCouplets.length >= 2) {
+              const targetId = (typeof d.id === 'string' && !existingIds.has(d.id) && !d.id.startsWith('builtin_'))
+                ? d.id
+                : 'custom_' + Date.now() + '_' + Math.floor(Math.random() * 10000);
+              existingIds.add(targetId);
+
+              state.customDecks.unshift({
+                id: targetId,
+                title: d.title.trim(),
+                author: typeof d.author === 'string' ? d.author.trim() : '',
+                isBuiltIn: false,
+                couplets: validCouplets.map((c) => ({ m1: c.m1.trim(), m2: c.m2.trim() })),
+              });
+              addedDecks++;
+            }
+          }
+        });
+
+        if (incomingStats) {
+          Object.keys(incomingStats).forEach((deckId) => {
+            const inc = incomingStats[deckId];
+            if (!inc || typeof inc !== 'object') return;
+            const cur = state.stats[deckId] || { practiceCount: 0, bestAccuracy: null, practiceDays: [], lastPracticedDay: null };
+            const combinedDays = Array.from(new Set([
+              ...(Array.isArray(cur.practiceDays) ? cur.practiceDays : []),
+              ...(Array.isArray(inc.practiceDays) ? inc.practiceDays : []),
+            ])).sort();
+
+            const lastDay = combinedDays.length > 0
+              ? combinedDays[combinedDays.length - 1]
+              : (inc.lastPracticedDay || cur.lastPracticedDay);
+
+            const bestAcc = [cur.bestAccuracy, inc.bestAccuracy]
+              .filter((v) => typeof v === 'number')
+              .reduce((acc, v) => (acc === null ? v : Math.max(acc, v)), null);
+
+            state.stats[deckId] = {
+              practiceCount: Math.max(cur.practiceCount || 0, Number(inc.practiceCount) || 0),
+              bestAccuracy: bestAcc,
+              practiceDays: combinedDays,
+              lastPracticedDay: lastDay,
+            };
+            mergedStats++;
+          });
+        }
+
+        if (addedDecks > 0 || mergedStats > 0) {
+          saveCustomDecks();
+          saveStats();
+          renderLibrary();
+          closeModal('backupModal');
+          document.getElementById('importJsonTextarea').value = '';
+          showToast(`بازیابی انجام شد (${toPersianDigits(addedDecks)} شعر و آمار پیشرفت).`, 'success');
+        } else {
+          showToast('داده معتبری در فایل JSON پیدا نشد.', 'error');
+        }
+      } catch (e) {
+        showToast('فرمت فایل JSON نامعتبر است.', 'error');
+      }
+    }
+
+    // ==================== مدیریت مودال‌ها ====================
+
+    function openModal(id) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.classList.remove('hidden');
+      el.classList.add('flex');
+    }
+
+    function closeModal(id) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.classList.add('hidden');
+      el.classList.remove('flex');
+    }
+
+    // ==================== اتصال رویدادها و راه‌اندازی ====================
+
+    function bindEvents() {
+      // هدر
+      document.getElementById('brandHomeBtn').addEventListener('click', () => switchView('library'));
+      document.getElementById('openGuideBtn').addEventListener('click', () => {
+        document.getElementById('dontShowGuideCheckbox').checked =
+          localStorage.getItem(STORAGE_KEYS.HIDE_GUIDE) === 'true';
+        openModal('guideModal');
+      });
+
+      document.getElementById('soundToggleBtn').addEventListener('click', () => {
+        state.muted = !state.muted;
+        try { localStorage.setItem(STORAGE_KEYS.MUTED, String(state.muted)); } catch (e) {}
+        updateSoundToggleUI();
+        showToast(state.muted ? 'صدا قطع شد' : 'صدا وصل شد', 'info');
+      });
+
+      // مودال راهنما
+      const closeGuideHandler = () => {
+        const hide = document.getElementById('dontShowGuideCheckbox').checked;
+        try { localStorage.setItem(STORAGE_KEYS.HIDE_GUIDE, String(hide)); } catch (e) {}
+        closeModal('guideModal');
+      };
+      document.getElementById('closeGuideBtn').addEventListener('click', closeGuideHandler);
+      document.getElementById('closeGuideX').addEventListener('click', closeGuideHandler);
+
+      // بنر ادامه بازی نیمه‌تمام
+      document.getElementById('resumeGameBtn').addEventListener('click', resumeSavedSession);
+      document.getElementById('discardSessionBtn').addEventListener('click', () => {
+        clearActiveSession();
+        renderResumeBanner();
+        showToast('بازی نیمه‌تمام بسته شد.', 'info');
+      });
+
+      // کتابخانه
+      document.getElementById('createDeckBtn').addEventListener('click', openEditorForNew);
+      document.getElementById('openBackupModalBtn').addEventListener('click', () => openModal('backupModal'));
+
+      // ویرایشگر
+      document.getElementById('editorBackBtn').addEventListener('click', () => switchView('library'));
+      document.getElementById('modeLineByLineBtn').addEventListener('click', () => {
+        state.parseMode = 'lineByLine';
+        updateParseModeUI();
+      });
+      document.getElementById('modeSingleLineBtn').addEventListener('click', () => {
+        state.parseMode = 'singleLine';
+        updateParseModeUI();
+      });
+      document.getElementById('applySuggestedModeBtn').addEventListener('click', () => {
+        if (state.suggestedMode) {
+          state.parseMode = state.suggestedMode;
+          updateParseModeUI();
+        }
+      });
+      document.getElementById('poemTextarea').addEventListener('input', updateEditorPreview);
+      document.getElementById('fillSamplePoemBtn').addEventListener('click', () => {
+        document.getElementById('deckTitleInput').value = 'رباعیات خیام';
+        document.getElementById('deckAuthorInput').value = 'حکیم عمر خیام نیشابوری';
+        state.parseMode = 'lineByLine';
+        document.getElementById('poemTextarea').value =
+          'این قافله عمر عجب می‌گذرد\nدریاب دمی که با طرب می‌گذرد\n\nساقی غم فردای حریفان چه خوری\nپیش آر پیاله را که شب می‌گذرد\n\nاسرار ازل را نه تو دانی و نه من\nوین حرف معما نه تو خوانی و نه من';
+        updateParseModeUI();
+      });
+      document.getElementById('saveDeckOnlyBtn').addEventListener('click', () => saveEditorDeck(false));
+      document.getElementById('saveAndPlayBtn').addEventListener('click', () => saveEditorDeck(true));
+
+      // صفحه بازی
+      document.getElementById('gameBackBtn').addEventListener('click', () => switchView('library'));
+      document.getElementById('reshuffleBtn').addEventListener('click', reshuffleRemainingCards);
+      document.getElementById('hintBtn').addEventListener('click', triggerHint);
+      document.getElementById('showLabelsToggle').addEventListener('change', (e) => {
+        state.game.showLabels = e.target.checked;
+        updateFilterUI();
+        renderGameBoard();
+        saveActiveSession();
+      });
+      document.querySelectorAll('.filter-pill').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          state.game.filter = btn.dataset.filter;
+          updateFilterUI();
+          renderGameBoard();
+        });
+      });
+
+      // مودال پایان دور
+      document.getElementById('playAgainBtn').addEventListener('click', () => {
+        closeModal('completionModal');
+        if (state.game.deck) startFreshGame(state.game.deck.id);
+      });
+      document.getElementById('backToLibraryFromCompBtn').addEventListener('click', () => {
+        closeModal('completionModal');
+        switchView('library');
+      });
+
+      // مودال پشتیبان‌گیری
+      document.getElementById('closeBackupModalBtn').addEventListener('click', () => closeModal('backupModal'));
+      document.getElementById('exportJsonFileBtn').addEventListener('click', exportBackupAsFile);
+      document.getElementById('copyJsonBtn').addEventListener('click', copyBackupAsJson);
+      document.getElementById('importJsonTextBtn').addEventListener('click', () => {
+        const text = document.getElementById('importJsonTextarea').value.trim();
+        if (!text) {
+          showToast('لطفاً متن JSON را وارد کنید.', 'error');
+          return;
+        }
+        importBackupFromJson(text);
+      });
+      document.getElementById('importJsonFileInput').addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          importBackupFromJson(ev.target.result);
+          e.target.value = '';
+        };
+        reader.readAsText(file, 'utf-8');
+      });
+
+      // مودال تایید حذف
+      document.getElementById('cancelDeleteBtn').addEventListener('click', () => {
+        state.pendingDeleteId = null;
+        closeModal('confirmDeleteModal');
+      });
+      document.getElementById('confirmDeleteBtn').addEventListener('click', executeDeleteDeck);
+
+      // ذخیره خودکار زمان و وضعیت بازی هنگام بستن یا پس‌زمینه رفتن تب در موبایل
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'hidden' && state.currentView === 'game') {
+          saveActiveSession();
+        }
+      });
+      window.addEventListener('beforeunload', () => {
+        if (state.currentView === 'game') {
+          saveActiveSession();
+        }
+      });
+    }
+
+    // اجرای اولیه برنامه
+    document.addEventListener('DOMContentLoaded', () => {
+      loadStorage();
+      bindEvents();
+      renderLibrary();
+
+      try {
+        if (localStorage.getItem(STORAGE_KEYS.HIDE_GUIDE) !== 'true') {
+          openModal('guideModal');
+        }
+      } catch (e) {
+        openModal('guideModal');
+      }
+    });
+  </script>
+</body>
+</html>
